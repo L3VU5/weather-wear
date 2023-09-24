@@ -1,108 +1,368 @@
-import Image from "next/image";
+"use client";
+import {
+  Input,
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  CircularProgress,
+  Divider,
+  Image,
+  Tooltip,
+} from "@nextui-org/react";
+import { useEffect, useMemo, useState } from "react";
+import queryString from "query-string";
+import type { IWeatherCodes } from "./constants/weatherCodes";
+import { weatherCodes } from "./constants/weatherCodes";
+
+interface ICityData {
+  latitude: string;
+  longitude: string;
+  country: string;
+  name: string;
+}
+interface IWeather {
+  temperature: number;
+  temperatureApparent: number;
+  rainIntensity: number;
+  snowIntensity: number;
+  uvIndex: number;
+  windSpeed: number;
+  weatherCode: number;
+}
 
 export default function Home() {
+  const [weatherDesc] = useState<IWeatherCodes>(() => weatherCodes);
+  const [isLoading, setIsLoading] = useState<Boolean>(true);
+  const [cityInput, setCityInput] = useState<string>(() => "Krakow");
+  const [cityData, setCityData] = useState<ICityData>({
+    latitude: "",
+    longitude: "",
+    country: "",
+    name: "",
+  });
+  const [weather, setWeather] = useState<IWeather>({
+    temperature: 0,
+    temperatureApparent: 0,
+    rainIntensity: 0,
+    snowIntensity: 0,
+    uvIndex: 0,
+    windSpeed: 0,
+    weatherCode: 0,
+  });
+  const {
+    temperature,
+    temperatureApparent,
+    rainIntensity,
+    snowIntensity,
+    uvIndex,
+    windSpeed,
+    weatherCode,
+  } = weather;
+  const [location, setLocation] = useState<string[]>(() => []);
+
+  const apikey: string = "RwwoqaiNfeDTISgK9N3ZxEcVadsTvx52";
+  const units: string = "metric";
+
+  const memoizedParamsString = useMemo(
+    (): string =>
+      queryString.stringify(
+        {
+          apikey,
+          location,
+          units,
+        },
+        { arrayFormat: "comma" }
+      ),
+    [location]
+  );
+
+  const getWeather = async (): Promise<IWeather> => {
+    const response = await fetch(
+      `https://api.tomorrow.io/v4/weather/realtime?${memoizedParamsString}`,
+      {
+        method: "GET",
+      }
+    );
+    if (!response.ok) {
+      const message = `An error has occured: ${response.status}`;
+      throw new Error(message);
+    }
+    const parsedData = await response.json();
+    const {
+      temperature,
+      temperatureApparent,
+      rainIntensity,
+      snowIntensity,
+      windSpeed,
+      uvIndex,
+      weatherCode,
+    } = parsedData?.data?.values || {};
+    return {
+      temperature: temperature.toFixed(1),
+      temperatureApparent: temperatureApparent.toFixed(1),
+      rainIntensity,
+      snowIntensity,
+      windSpeed,
+      uvIndex,
+      weatherCode,
+    };
+  };
+
+  const getWeatherName = (code: number) => weatherDesc[code];
+
+  const getLongLatFromCity = async (city: string): Promise<any> => {
+    setIsLoading(true);
+    const response = await fetch(
+      `https://api.api-ninjas.com/v1/city?name=${city}`,
+      {
+        method: "GET",
+        headers: { "X-Api-Key": "S0fG7E8kk2wbjxYWnimNug==iasyX3kCO3pxxNGO" },
+      }
+    );
+    if (!response.ok) {
+      const message = `An error has occured: ${response.status}`;
+      throw new Error(message);
+    }
+    const parsedData = await response.json();
+    setIsLoading(false);
+    return parsedData[0];
+  };
+
+  function onCitySet(): void {
+    getLongLatFromCity(cityInput).then(
+      ({ latitude, longitude, country, name }) => {
+        setCityData({ latitude, longitude, country, name });
+        setLocation([latitude, longitude]);
+      }
+    );
+  }
+
+  function success(position: any): void {
+    const { latitude, longitude } = position.coords;
+    setLocation([latitude, longitude]);
+  }
+
+  function error() {
+    console.log("Unable to retrieve your location");
+  }
+
+  function getBrowserLocation(): void {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+      console.log("Geolocation not supported");
+    }
+  }
+
+  function renderClothes() {
+    const layers: string[] = [];
+    let vibe = "medium";
+    let isRaining = false;
+    let isSunny = false;
+    if (
+      temperatureApparent === null ||
+      rainIntensity === null ||
+      snowIntensity === null
+    ) {
+      return;
+    }
+    if (rainIntensity > 5) {
+      isRaining = true;
+    }
+    if (uvIndex > 5) {
+      isRaining = true;
+    }
+    if (temperatureApparent > 25) {
+      vibe = "hot";
+    } else if (temperatureApparent > 20) {
+      vibe = "warm";
+    } else if (temperatureApparent > 15) {
+      vibe = "medium";
+    } else if (temperatureApparent > 10) {
+      vibe = "chilly";
+    } else if (temperatureApparent > 5) {
+      vibe = "cold";
+    } else {
+      vibe = "freezing";
+    }
+    switch (vibe) {
+      case "hot": {
+        layers.push("jersey", "shorts", "sneaker");
+        break;
+      }
+      case "warm": {
+        layers.push("t-shirt", "shorts-jeans", "sneaker");
+        break;
+      }
+      case "medium": {
+        layers.push("t-shirt", "jeans", "sneaker");
+        break;
+      }
+      case "chilly": {
+        layers.push("hoodie", "jeans", "shoe");
+        break;
+      }
+      case "cold": {
+        layers.push("rain-jacket", "jeans", "shoe");
+        break;
+      }
+      case "freezing": {
+        layers.push(
+          "scarf",
+          "winter-hat",
+          "gloves",
+          "wind-jacket",
+          "jeans",
+          "shoe"
+        );
+        break;
+      }
+      default:
+    }
+    if (isRaining) {
+      layers.push("umbrella");
+    }
+    if (isSunny) {
+      layers.push("glasses");
+    }
+    return layers.map((layer, i) => (
+      <>
+        <Tooltip
+          showArrow={true}
+          content={layer}
+          placement="bottom"
+          color="secondary"
+        >
+          <Image
+            className="hover:scale-110"
+            width={200}
+            key={layer}
+            alt={layer}
+            src={`/assets/${layer}.png`}
+          />
+        </Tooltip>
+        {i < layers.length - 1 && (
+          <Image
+            width={100}
+            key={`${layer}_add`}
+            alt="add"
+            src="/assets/add.png"
+          />
+        )}
+      </>
+    ));
+  }
+
+  function getIconFromWeatherName(name: string): string {
+    const parsedName = name.toLowerCase();
+    if (parsedName.includes("thunderstorm")) {
+      return "storm";
+    }
+    if (parsedName.includes("rain")) {
+      if (parsedName.includes("snow")) {
+        return "snow-rain";
+      }
+      return "heavy-rain";
+    }
+    if (parsedName.includes("snow")) {
+      return "snow";
+    }
+
+    if (parsedName.includes("cloudy")) {
+      return "cloudy-sun";
+    }
+    return "sunny";
+  }
+
+  useEffect(() => {
+    if (location) {
+      setIsLoading(true);
+      getWeather()
+        .then((weatherData) => setWeather(weatherData))
+        .finally(() => setIsLoading(false));
+    }
+  }, [location]);
+
+  useEffect(() => {
+    onCitySet();
+  }, []);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="bg-slate-950 flex h-screen min-h-screen flex-col p-24 items-center ">
+      <div className="w-full max-w-6xl">
+        <div className="flex mb-32 text-center w-full gap-2">
+          <Input
+            type="text"
+            size="lg"
+            label="Select city"
+            color="secondary"
+            value={cityInput}
+            onValueChange={setCityInput}
+          />
+          <Button className="h-16 px-8" onClick={onCitySet} color="secondary">
+            Set
+          </Button>
+          <Button className="h-16 px-8" onClick={getBrowserLocation}>
+            Get my location
+          </Button>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        <div className="flex w-full">
+          {isLoading ? (
+            <CircularProgress
+              color="secondary"
+              size="lg"
+              aria-label="Loading..."
+            />
+          ) : (
+            <Card className="flex w-full">
+              <>
+                <CardHeader className=" px-6 flex gap-4">
+                  <div className="flex flex-col">
+                    <p className="font-semibold text-md text-indigo-300">
+                      {cityData?.name}, {cityData?.country}
+                    </p>
+                  </div>
+                  <div className="ml-auto text-right">
+                    {windSpeed > 5 && (
+                      <Image
+                        width={64}
+                        alt="windy-icon"
+                        src={`/assets/windy.png`}
+                      />
+                    )}
+                    <p className="text-small text-default-500">
+                      {temperature !== null ? `${temperature} ℃` : "No data."}
+                    </p>
+                    <p className="font-semibold text-md text-indigo-300">
+                      {getWeatherName(weatherCode)}
+                    </p>
+                  </div>
+                  <Image
+                    width={64}
+                    alt="weather-icon"
+                    src={`/assets/${getIconFromWeatherName(
+                      getWeatherName(weatherCode)
+                    )}.png`}
+                  />
+                </CardHeader>
+                <Divider />
+                <CardBody className="flex flex-row justify-around items-center">
+                  {weather ? renderClothes() : <p>No data.</p>}
+                </CardBody>
+                <Divider />
+                <CardFooter className="px-6">
+                  {cityData && (
+                    <p className="w-full text-right text-xs text-indigo-300">
+                      Long: {cityData.longitude}, Lat: {cityData.latitude}
+                    </p>
+                  )}
+                </CardFooter>
+              </>
+            </Card>
+          )}
+        </div>
       </div>
     </main>
   );
