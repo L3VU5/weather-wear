@@ -6,15 +6,21 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-  CircularProgress,
+  Skeleton,
   Divider,
   Image,
   Tooltip,
 } from "@nextui-org/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, ReactNode } from "react";
 import queryString from "query-string";
+import upperFirst from "lodash/upperFirst";
 import type { IWeatherCodes } from "./constants/weatherCodes";
 import { weatherCodes } from "./constants/weatherCodes";
+
+const EXOAPI_KEY: string =
+  "032c822a67264101ab09d09758a71cb0-79a02ca5254f2a75da522f6eaf6c5724";
+const TOMORROW_KEY: string = "RwwoqaiNfeDTISgK9N3ZxEcVadsTvx52";
+const NINJA_KEY: string = "S0fG7E8kk2wbjxYWnimNug==iasyX3kCO3pxxNGO";
 
 interface ICityData {
   latitude: string;
@@ -60,25 +66,21 @@ export default function Home() {
     windSpeed,
     weatherCode,
   } = weather;
-  const [location, setLocation] = useState<string[]>(() => []);
-
-  const apikey: string = "RwwoqaiNfeDTISgK9N3ZxEcVadsTvx52";
   const units: string = "metric";
-
   const memoizedParamsString = useMemo(
     (): string =>
       queryString.stringify(
         {
-          apikey,
-          location,
+          apikey: TOMORROW_KEY,
+          location: [cityData.latitude, cityData.longitude],
           units,
         },
         { arrayFormat: "comma" }
       ),
-    [location]
+    [cityData.latitude, cityData.longitude]
   );
 
-  const getWeather = async (): Promise<IWeather> => {
+  const getWeather = useCallback(async (): Promise<IWeather> => {
     const response = await fetch(
       `https://api.tomorrow.io/v4/weather/realtime?${memoizedParamsString}`,
       {
@@ -108,17 +110,14 @@ export default function Home() {
       uvIndex,
       weatherCode,
     };
-  };
+  }, [memoizedParamsString]);
 
-  const getWeatherName = (code: number) => weatherDesc[code];
-
-  const getLongLatFromCity = async (city: string): Promise<any> => {
-    setIsLoading(true);
+  const getLongLatFromCity = async (city: string): Promise<ICityData> => {
     const response = await fetch(
       `https://api.api-ninjas.com/v1/city?name=${city}`,
       {
         method: "GET",
-        headers: { "X-Api-Key": "S0fG7E8kk2wbjxYWnimNug==iasyX3kCO3pxxNGO" },
+        headers: { "X-Api-Key": NINJA_KEY },
       }
     );
     if (!response.ok) {
@@ -126,41 +125,85 @@ export default function Home() {
       throw new Error(message);
     }
     const parsedData = await response.json();
-    setIsLoading(false);
     return parsedData[0];
   };
 
-  function onCitySet(): void {
+  const getCityFromLongLat = async (
+    lat: Number,
+    lon: Number
+  ): Promise<ICityData> => {
+    const response = await fetch("https://api.exoapi.dev/reverse-geocoding", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${EXOAPI_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lat,
+        lon,
+        locale: "en-GB",
+      }),
+    });
+    const {
+      lat: latitude,
+      lon: longitude,
+      city: name,
+      countryCode: country,
+    } = await response.json();
+    return { latitude, longitude, name, country };
+  };
+
+  const onCitySet = useCallback((): void => {
+    setIsLoading(true);
     getLongLatFromCity(cityInput).then(
       ({ latitude, longitude, country, name }) => {
         setCityData({ latitude, longitude, country, name });
-        setLocation([latitude, longitude]);
       }
     );
-  }
+  }, [cityInput]);
+
+  useEffect(() => {
+    if (cityData?.latitude) {
+      getWeather()
+        .then((weatherData) => setWeather(weatherData))
+        .finally(() => setIsLoading(false));
+    }
+  }, [cityData?.latitude, getWeather]);
+
+  useEffect(() => {
+    onCitySet();
+  }, [onCitySet]);
 
   function success(position: any): void {
     const { latitude, longitude } = position.coords;
-    setLocation([latitude, longitude]);
+    getCityFromLongLat(latitude, longitude).then((data) => {
+      setCityData(data);
+      setCityInput(data.name);
+    });
   }
 
-  function error() {
+  function error(): void {
     console.log("Unable to retrieve your location");
   }
 
   function getBrowserLocation(): void {
     if (navigator.geolocation) {
+      setIsLoading(true);
       navigator.geolocation.getCurrentPosition(success, error);
     } else {
       console.log("Geolocation not supported");
     }
   }
 
-  function renderClothes() {
+  const memoizedWeatherName = useMemo(
+    (): string => weatherDesc[weatherCode],
+    [weatherDesc, weatherCode]
+  );
+
+  function renderClothes(): ReactNode {
     const layers: string[] = [];
-    let vibe = "medium";
-    let isRaining = false;
-    let isSunny = false;
+    type Vibe = "freezing" | "cold" | "chilly" | "medium" | "warm" | "hot";
+    let vibe: Vibe = "medium";
     if (
       temperatureApparent === null ||
       rainIntensity === null ||
@@ -169,20 +212,20 @@ export default function Home() {
       return;
     }
     if (rainIntensity > 5) {
-      isRaining = true;
+      layers.push("umbrella");
     }
     if (uvIndex > 5) {
-      isRaining = true;
+      layers.push("glasses");
     }
     if (temperatureApparent > 25) {
       vibe = "hot";
-    } else if (temperatureApparent > 20) {
+    } else if (temperatureApparent > 21) {
       vibe = "warm";
-    } else if (temperatureApparent > 15) {
+    } else if (temperatureApparent > 17) {
       vibe = "medium";
-    } else if (temperatureApparent > 10) {
+    } else if (temperatureApparent > 12) {
       vibe = "chilly";
-    } else if (temperatureApparent > 5) {
+    } else if (temperatureApparent > 6) {
       vibe = "cold";
     } else {
       vibe = "freezing";
@@ -221,17 +264,11 @@ export default function Home() {
       }
       default:
     }
-    if (isRaining) {
-      layers.push("umbrella");
-    }
-    if (isSunny) {
-      layers.push("glasses");
-    }
     return layers.map((layer, i) => (
       <>
         <Tooltip
           showArrow={true}
-          content={layer}
+          content={upperFirst(layer)}
           placement="bottom"
           color="secondary"
         >
@@ -276,18 +313,40 @@ export default function Home() {
     return "sunny";
   }
 
-  useEffect(() => {
-    if (location) {
-      setIsLoading(true);
-      getWeather()
-        .then((weatherData) => setWeather(weatherData))
-        .finally(() => setIsLoading(false));
-    }
-  }, [location]);
-
-  useEffect(() => {
-    onCitySet();
-  }, []);
+  function renderSkeleton(): JSX.Element {
+    return (
+      <Card className="flex w-full space-y-5 p-4" radius="lg">
+        <div className="flex flex-row rounded-lg">
+          <Skeleton className="w-1/5 rounded-lg">
+            <div className="h-10 w-full rounded-lg bg-secondary"></div>
+          </Skeleton>
+          <Skeleton className="ml-auto w-1/5 rounded-lg">
+            <div className="h-6 w-full rounded-lg bg-secondary"></div>
+          </Skeleton>
+          <Skeleton className="ml-6 flex rounded-full w-12 h-12" />
+        </div>
+        <div className="flex flex-row justify-around rounded-lg gap-4">
+          <Skeleton className="flex w-full h-64 rounded-lg">
+            <div className="rounded-lg bg-secondary"></div>
+          </Skeleton>
+          <Skeleton className="flex w-full h-64 rounded-lg">
+            <div className="rounded-lg bg-secondary"></div>
+          </Skeleton>
+          <Skeleton className="flex w-full h-64 rounded-lg">
+            <div className="rounded-lg bg-secondary"></div>
+          </Skeleton>
+          <Skeleton className="flex w-full h-64 rounded-lg">
+            <div className="rounded-lg bg-secondary"></div>
+          </Skeleton>
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="ml-auto w-2/5 rounded-lg flex">
+            <div className="h-4 w-full rounded-lg bg-secondary-200"></div>
+          </Skeleton>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <main className="bg-slate-950 flex h-screen min-h-screen flex-col p-24 items-center ">
@@ -296,7 +355,7 @@ export default function Home() {
           <Input
             type="text"
             size="lg"
-            label="Select city"
+            label="City"
             color="secondary"
             value={cityInput}
             onValueChange={setCityInput}
@@ -308,59 +367,57 @@ export default function Home() {
             Get my location
           </Button>
         </div>
-        <div className="flex w-full">
+        <div className="flex w-full justify-center">
           {isLoading ? (
-            <CircularProgress
-              color="secondary"
-              size="lg"
-              aria-label="Loading..."
-            />
-          ) : (
+            renderSkeleton()
+          ) : !!cityData?.country && !!weather?.temperature ? (
             <Card className="flex w-full">
-              <>
-                <CardHeader className=" px-6 flex gap-4">
-                  <div className="flex flex-col">
-                    <p className="font-semibold text-md text-indigo-300">
-                      {cityData?.name}, {cityData?.country}
-                    </p>
-                  </div>
-                  <div className="ml-auto text-right">
-                    {windSpeed > 5 && (
-                      <Image
-                        width={64}
-                        alt="windy-icon"
-                        src={`/assets/windy.png`}
-                      />
-                    )}
+              <CardHeader className=" px-6 flex gap-4">
+                <div className="flex flex-col">
+                  <p className="font-semibold text-md text-indigo-300">
+                    {cityData?.name}, {cityData?.country}
+                  </p>
+                </div>
+                <div className="ml-auto">
+                  {windSpeed > 5 && (
+                    <Image
+                      width={64}
+                      alt="windy-icon"
+                      src={`/assets/windy.png`}
+                    />
+                  )}
+                  <div className="text-right">
                     <p className="text-small text-default-500">
                       {temperature !== null ? `${temperature} ℃` : "No data."}
                     </p>
                     <p className="font-semibold text-md text-indigo-300">
-                      {getWeatherName(weatherCode)}
+                      {memoizedWeatherName}
                     </p>
                   </div>
-                  <Image
-                    width={64}
-                    alt="weather-icon"
-                    src={`/assets/${getIconFromWeatherName(
-                      getWeatherName(weatherCode)
-                    )}.png`}
-                  />
-                </CardHeader>
-                <Divider />
-                <CardBody className="flex flex-row justify-around items-center">
-                  {weather ? renderClothes() : <p>No data.</p>}
-                </CardBody>
-                <Divider />
-                <CardFooter className="px-6">
-                  {cityData && (
-                    <p className="w-full text-right text-xs text-indigo-300">
-                      Long: {cityData.longitude}, Lat: {cityData.latitude}
-                    </p>
-                  )}
-                </CardFooter>
-              </>
+                </div>
+                <Image
+                  width={64}
+                  alt="weather-icon"
+                  src={`/assets/${getIconFromWeatherName(
+                    memoizedWeatherName
+                  )}.png`}
+                />
+              </CardHeader>
+              <Divider />
+              <CardBody className="flex flex-row justify-around items-center">
+                {weather ? renderClothes() : <p>No data.</p>}
+              </CardBody>
+              <Divider />
+              <CardFooter className="px-6">
+                {cityData && (
+                  <p className="w-full text-right text-xs text-indigo-300">
+                    Long: {cityData.longitude}, Lat: {cityData.latitude}
+                  </p>
+                )}
+              </CardFooter>
             </Card>
+          ) : (
+            <p>No data.</p>
           )}
         </div>
       </div>
