@@ -2,6 +2,7 @@
 import {
   Input,
   Button,
+  Code,
   Card,
   CardHeader,
   CardBody,
@@ -171,7 +172,7 @@ export default function Home() {
 
   useEffect(() => {
     throttledCitySet();
-  }, []);
+  }, [throttledCitySet]);
 
   function success(position: any): void {
     const { latitude, longitude } = position.coords;
@@ -314,7 +315,7 @@ export default function Home() {
 
   function renderSkeleton(): JSX.Element {
     return (
-      <Card className="flex w-full space-y-5 p-1 sm:p-4" radius="lg">
+      <Card className="bg-[#170826]/60 flex w-full space-y-5 p-1 sm:p-4">
         <div className="flex flex-row rounded-lg">
           <Skeleton className="w-1/5 rounded-lg">
             <div className="h-10 w-full rounded-lg bg-secondary"></div>
@@ -356,9 +357,9 @@ export default function Home() {
 
   return (
     <main className="bg-slate-950">
-      <div className="flex h-screen min-h-screen flex-col p-4 sm:p-24 items-center ">
-        <div className="w-full max-w-6xl">
-          <div className="flex mb-32 text-center w-full gap-2 flex-col sm:flex-row">
+      <div className="flex h-full min-h-screen flex-col p-4 sm:p-24 items-center ">
+        <div className="w-full max-w-6xl relative flex grow flex-col items-center">
+          <div className="flex mb-6 text-center w-full gap-2 flex-col sm:flex-row">
             <Input
               type="text"
               size="lg"
@@ -382,11 +383,11 @@ export default function Home() {
               Get my location
             </Button>
           </div>
-          <div className="flex w-full justify-center">
+          <div className="flex w-full grow justify-center items-center">
             {isLoading ? (
               renderSkeleton()
             ) : !!cityData?.country && !!weather?.temperature ? (
-              <Card className="flex w-full">
+              <Card className="bg-[#170826]/60 flex w-full">
                 <CardHeader className=" px-6 flex gap-6">
                   <div className="flex flex-col">
                     <p className="font-semibold text-md text-indigo-300">
@@ -457,6 +458,9 @@ export default function Home() {
             ) : (
               <p>No data.</p>
             )}
+          </div>
+          <div className="mt-6 w-full flex flex-row-reverse">
+            <Code color="default">by L3VU5</Code>
           </div>
         </div>
       </div>
