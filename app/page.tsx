@@ -314,7 +314,7 @@ export default function Home() {
 
   function renderSkeleton(): JSX.Element {
     return (
-      <Card className="flex w-full space-y-5 p-4" radius="lg">
+      <Card className="flex w-full space-y-5 p-1 sm:p-4" radius="lg">
         <div className="flex flex-row rounded-lg">
           <Skeleton className="w-1/5 rounded-lg">
             <div className="h-10 w-full rounded-lg bg-secondary"></div>
@@ -355,7 +355,7 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-slate-950 flex h-screen min-h-screen flex-col p-24 items-center ">
+    <main className="bg-slate-950 flex h-screen min-h-screen flex-col p-4 sm:p-24 items-center ">
       <div className="w-full max-w-6xl">
         <div className="flex mb-32 text-center w-full gap-2 flex-col sm:flex-row">
           <Input
@@ -367,10 +367,17 @@ export default function Home() {
             onValueChange={setCityInput}
             onKeyDown={onKeyDown}
           />
-          <Button className="h-16 px-8" onClick={onCitySet} color="secondary">
+          <Button
+            className="h-16 px-8 font-semibold"
+            onClick={onCitySet}
+            color="secondary"
+          >
             Set
           </Button>
-          <Button className="h-16 px-8" onClick={getBrowserLocation}>
+          <Button
+            className="h-16 px-8 font-semibold"
+            onClick={getBrowserLocation}
+          >
             Get my location
           </Button>
         </div>
@@ -432,7 +439,7 @@ export default function Home() {
                 </Tooltip>
               </CardHeader>
               <Divider />
-              <CardBody className="flex flex-col sm:flex-row justify-around items-center">
+              <CardBody className="flex flex-col sm:flex-row justify-around items-center p-8">
                 {weather ? renderClothes() : <p>No data.</p>}
               </CardBody>
               <Divider />
