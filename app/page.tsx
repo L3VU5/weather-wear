@@ -14,13 +14,10 @@ import {
 import { useEffect, useMemo, useState, useCallback, ReactNode } from "react";
 import queryString from "query-string";
 import upperFirst from "lodash/upperFirst";
+import { throttle } from "lodash";
 import type { IWeatherCodes } from "./constants/weatherCodes";
 import { weatherCodes } from "./constants/weatherCodes";
-
-const EXOAPI_KEY: string =
-  "032c822a67264101ab09d09758a71cb0-79a02ca5254f2a75da522f6eaf6c5724";
-const TOMORROW_KEY: string = "RwwoqaiNfeDTISgK9N3ZxEcVadsTvx52";
-const NINJA_KEY: string = "S0fG7E8kk2wbjxYWnimNug==iasyX3kCO3pxxNGO";
+import { EXOAPI_KEY, TOMORROW_KEY, NINJA_KEY } from "./constants/environment";
 
 interface ICityData {
   latitude: string;
@@ -154,13 +151,14 @@ export default function Home() {
   };
 
   const onCitySet = useCallback((): void => {
-    setIsLoading(true);
     getLongLatFromCity(cityInput).then(
       ({ latitude, longitude, country, name }) => {
         setCityData({ latitude, longitude, country, name });
       }
     );
   }, [cityInput]);
+
+  const throttledCitySet = throttle(onCitySet, 1000, { trailing: false });
 
   useEffect(() => {
     if (cityData?.latitude) {
@@ -171,8 +169,8 @@ export default function Home() {
   }, [cityData?.latitude, getWeather]);
 
   useEffect(() => {
-    onCitySet();
-  }, [onCitySet]);
+    throttledCitySet();
+  }, []);
 
   function success(position: any): void {
     const { latitude, longitude } = position.coords;
@@ -325,7 +323,7 @@ export default function Home() {
           </Skeleton>
           <Skeleton className="ml-6 flex rounded-full w-12 h-12" />
         </div>
-        <div className="flex flex-row justify-around rounded-lg gap-4">
+        <div className="flex flex-col sm:flex-row justify-around rounded-lg gap-4">
           <Skeleton className="flex w-full h-64 rounded-lg">
             <div className="rounded-lg bg-secondary"></div>
           </Skeleton>
@@ -348,10 +346,17 @@ export default function Home() {
     );
   }
 
+  function onKeyDown(e: any) {
+    if (e.code === "Enter") {
+      onCitySet();
+    }
+    return false;
+  }
+
   return (
     <main className="bg-slate-950 flex h-screen min-h-screen flex-col p-24 items-center ">
       <div className="w-full max-w-6xl">
-        <div className="flex mb-32 text-center w-full gap-2">
+        <div className="flex mb-32 text-center w-full gap-2 flex-col sm:flex-row">
           <Input
             type="text"
             size="lg"
@@ -359,6 +364,7 @@ export default function Home() {
             color="secondary"
             value={cityInput}
             onValueChange={setCityInput}
+            onKeyDown={onKeyDown}
           />
           <Button className="h-16 px-8" onClick={onCitySet} color="secondary">
             Set
@@ -372,39 +378,60 @@ export default function Home() {
             renderSkeleton()
           ) : !!cityData?.country && !!weather?.temperature ? (
             <Card className="flex w-full">
-              <CardHeader className=" px-6 flex gap-4">
+              <CardHeader className=" px-6 flex gap-6">
                 <div className="flex flex-col">
                   <p className="font-semibold text-md text-indigo-300">
                     {cityData?.name}, {cityData?.country}
                   </p>
                 </div>
-                <div className="ml-auto">
+                <div className="ml-auto flex flex-row items-center">
                   {windSpeed > 5 && (
-                    <Image
-                      width={64}
-                      alt="windy-icon"
-                      src={`/assets/windy.png`}
-                    />
+                    <Tooltip
+                      showArrow={true}
+                      content="It's windy!"
+                      placement="top"
+                      color="secondary"
+                    >
+                      <Image
+                        width={64}
+                        alt="windy-icon"
+                        src={`/assets/windy.png`}
+                      />
+                    </Tooltip>
                   )}
-                  <div className="text-right">
-                    <p className="text-small text-default-500">
-                      {temperature !== null ? `${temperature} ℃` : "No data."}
-                    </p>
+                  <div className="ml-6 text-right">
+                    <Tooltip
+                      showArrow={true}
+                      content={`Feels like ${temperatureApparent}℃`}
+                      placement="top"
+                      color="secondary"
+                    >
+                      <p className="text-small text-default-500">
+                        {temperature !== null ? `${temperature} ℃` : "No data."}
+                      </p>
+                    </Tooltip>
                     <p className="font-semibold text-md text-indigo-300">
                       {memoizedWeatherName}
                     </p>
                   </div>
                 </div>
-                <Image
-                  width={64}
-                  alt="weather-icon"
-                  src={`/assets/${getIconFromWeatherName(
-                    memoizedWeatherName
-                  )}.png`}
-                />
+                <Tooltip
+                  showArrow={true}
+                  content={upperFirst(memoizedWeatherName)}
+                  placement="top"
+                  color="secondary"
+                >
+                  <Image
+                    width={64}
+                    alt="weather-icon"
+                    src={`/assets/${getIconFromWeatherName(
+                      memoizedWeatherName
+                    )}.png`}
+                  />
+                </Tooltip>
               </CardHeader>
               <Divider />
-              <CardBody className="flex flex-row justify-around items-center">
+              <CardBody className="flex flex-col sm:flex-row justify-around items-center">
                 {weather ? renderClothes() : <p>No data.</p>}
               </CardBody>
               <Divider />
