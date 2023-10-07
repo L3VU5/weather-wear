@@ -355,105 +355,109 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-slate-950 flex h-screen min-h-screen flex-col p-4 sm:p-24 items-center ">
-      <div className="w-full max-w-6xl">
-        <div className="flex mb-32 text-center w-full gap-2 flex-col sm:flex-row">
-          <Input
-            type="text"
-            size="lg"
-            label="City"
-            color="secondary"
-            value={cityInput}
-            onValueChange={setCityInput}
-            onKeyDown={onKeyDown}
-          />
-          <Button
-            className="h-16 px-8 font-semibold"
-            onClick={onCitySet}
-            color="secondary"
-          >
-            Set
-          </Button>
-          <Button
-            className="h-16 px-8 font-semibold"
-            onClick={getBrowserLocation}
-          >
-            Get my location
-          </Button>
-        </div>
-        <div className="flex w-full justify-center">
-          {isLoading ? (
-            renderSkeleton()
-          ) : !!cityData?.country && !!weather?.temperature ? (
-            <Card className="flex w-full">
-              <CardHeader className=" px-6 flex gap-6">
-                <div className="flex flex-col">
-                  <p className="font-semibold text-md text-indigo-300">
-                    {cityData?.name}, {cityData?.country}
-                  </p>
-                </div>
-                <div className="ml-auto flex flex-row items-center">
-                  {windSpeed > 5 && (
-                    <Tooltip
-                      showArrow={true}
-                      content="It's windy!"
-                      placement="top"
-                      color="secondary"
-                    >
-                      <Image
-                        width={64}
-                        alt="windy-icon"
-                        src={`/assets/windy.png`}
-                      />
-                    </Tooltip>
-                  )}
-                  <div className="ml-6 text-right">
-                    <Tooltip
-                      showArrow={true}
-                      content={`Feels like ${temperatureApparent}℃`}
-                      placement="top"
-                      color="secondary"
-                    >
-                      <p className="text-small text-default-500">
-                        {temperature !== null ? `${temperature} ℃` : "No data."}
-                      </p>
-                    </Tooltip>
+    <main className="bg-slate-950">
+      <div className="flex h-screen min-h-screen flex-col p-4 sm:p-24 items-center ">
+        <div className="w-full max-w-6xl">
+          <div className="flex mb-32 text-center w-full gap-2 flex-col sm:flex-row">
+            <Input
+              type="text"
+              size="lg"
+              label="City"
+              color="secondary"
+              value={cityInput}
+              onValueChange={setCityInput}
+              onKeyDown={onKeyDown}
+            />
+            <Button
+              className="h-16 px-8 font-semibold"
+              onClick={onCitySet}
+              color="secondary"
+            >
+              Set
+            </Button>
+            <Button
+              className="h-16 px-8 font-semibold"
+              onClick={getBrowserLocation}
+            >
+              Get my location
+            </Button>
+          </div>
+          <div className="flex w-full justify-center">
+            {isLoading ? (
+              renderSkeleton()
+            ) : !!cityData?.country && !!weather?.temperature ? (
+              <Card className="flex w-full">
+                <CardHeader className=" px-6 flex gap-6">
+                  <div className="flex flex-col">
                     <p className="font-semibold text-md text-indigo-300">
-                      {memoizedWeatherName}
+                      {cityData?.name}, {cityData?.country}
                     </p>
                   </div>
-                </div>
-                <Tooltip
-                  showArrow={true}
-                  content={upperFirst(memoizedWeatherName)}
-                  placement="top"
-                  color="secondary"
-                >
-                  <Image
-                    width={64}
-                    alt="weather-icon"
-                    src={`/assets/${getIconFromWeatherName(
-                      memoizedWeatherName
-                    )}.png`}
-                  />
-                </Tooltip>
-              </CardHeader>
-              <Divider />
-              <CardBody className="flex flex-col sm:flex-row justify-around items-center p-8">
-                {weather ? renderClothes() : <p>No data.</p>}
-              </CardBody>
-              <Divider />
-              <CardFooter className="px-6">
-                {cityData && (
-                  <p className="w-full text-right text-xs text-indigo-300">
-                    Long: {cityData.longitude}, Lat: {cityData.latitude}
-                  </p>
-                )}
-              </CardFooter>
-            </Card>
-          ) : (
-            <p>No data.</p>
-          )}
+                  <div className="ml-auto flex flex-row items-center">
+                    {windSpeed > 5 && (
+                      <Tooltip
+                        showArrow={true}
+                        content="It's windy!"
+                        placement="top"
+                        color="secondary"
+                      >
+                        <Image
+                          width={64}
+                          alt="windy-icon"
+                          src={`/assets/windy.png`}
+                        />
+                      </Tooltip>
+                    )}
+                    <div className="ml-6 text-right">
+                      <Tooltip
+                        showArrow={true}
+                        content={`Feels like ${temperatureApparent}℃`}
+                        placement="top"
+                        color="secondary"
+                      >
+                        <p className="text-small text-default-500">
+                          {temperature !== null
+                            ? `${temperature} ℃`
+                            : "No data."}
+                        </p>
+                      </Tooltip>
+                      <p className="font-semibold text-md text-indigo-300">
+                        {memoizedWeatherName}
+                      </p>
+                    </div>
+                  </div>
+                  <Tooltip
+                    showArrow={true}
+                    content={upperFirst(memoizedWeatherName)}
+                    placement="top"
+                    color="secondary"
+                  >
+                    <Image
+                      width={64}
+                      alt="weather-icon"
+                      src={`/assets/${getIconFromWeatherName(
+                        memoizedWeatherName
+                      )}.png`}
+                    />
+                  </Tooltip>
+                </CardHeader>
+                <Divider />
+                <CardBody className="flex flex-col sm:flex-row justify-around items-center p-8">
+                  {weather ? renderClothes() : <p>No data.</p>}
+                </CardBody>
+                <Divider />
+                <CardFooter className="px-6">
+                  {cityData && (
+                    <p className="w-full text-right text-xs text-indigo-300">
+                      Long: {cityData.longitude}, Lat: {cityData.latitude}
+                    </p>
+                  )}
+                </CardFooter>
+              </Card>
+            ) : (
+              <p>No data.</p>
+            )}
+          </div>
         </div>
       </div>
     </main>
