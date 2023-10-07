@@ -110,11 +110,12 @@ export default function Home() {
   }, [memoizedParamsString]);
 
   const getLongLatFromCity = async (city: string): Promise<ICityData> => {
+    const headers: HeadersInit = { "X-Api-Key": NINJA_KEY! };
     const response = await fetch(
       `https://api.api-ninjas.com/v1/city?name=${city}`,
       {
         method: "GET",
-        headers: { "X-Api-Key": NINJA_KEY },
+        headers,
       }
     );
     if (!response.ok) {
