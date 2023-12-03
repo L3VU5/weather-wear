@@ -15,7 +15,9 @@ import {
 import { useEffect, useMemo, useState, useCallback, ReactNode } from "react";
 import queryString from "query-string";
 import upperFirst from "lodash/upperFirst";
-import { throttle } from "lodash";
+import lowerCase from "lodash/lowerCase";
+import throttle from "lodash/throttle";
+
 import type { IWeatherCodes } from "./constants/weatherCodes";
 import { weatherCodes } from "./constants/weatherCodes";
 import { EXOAPI_KEY, TOMORROW_KEY, NINJA_KEY } from "./constants/environment";
@@ -232,33 +234,33 @@ export default function Home() {
     }
     switch (vibe) {
       case "hot": {
-        layers.push("jersey", "shorts", "sneaker");
+        layers.push("jersey", "shorts", "sneakers");
         break;
       }
       case "warm": {
-        layers.push("t-shirt", "shorts-jeans", "sneaker");
+        layers.push("t-shirt", "jeansShorts", "sneakers");
         break;
       }
       case "medium": {
-        layers.push("t-shirt", "jeans", "sneaker");
+        layers.push("t-shirt", "jeans", "sneakers");
         break;
       }
       case "chilly": {
-        layers.push("hoodie", "jeans", "shoe");
+        layers.push("hoodie", "jeans", "winterShoes");
         break;
       }
       case "cold": {
-        layers.push("rain-jacket", "jeans", "shoe");
+        layers.push("rainJacket", "jeans", "winterShoes");
         break;
       }
       case "freezing": {
         layers.push(
           "scarf",
-          "winter-hat",
+          "winterHat",
           "gloves",
-          "wind-jacket",
+          "winterJacket",
           "jeans",
-          "shoe"
+          "winterShoes"
         );
         break;
       }
@@ -268,7 +270,7 @@ export default function Home() {
       <>
         <Tooltip
           showArrow={true}
-          content={upperFirst(layer)}
+          content={upperFirst(lowerCase(layer))}
           placement="bottom"
           color="secondary"
         >
