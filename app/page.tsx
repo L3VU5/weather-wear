@@ -534,7 +534,16 @@ export default function Home() {
             )}
           </div>
           <div className="mt-6 w-full flex flex-row-reverse">
-            <Code color="default">by L3VU5</Code>
+            <Code color="default">
+              by{" "}
+              <a
+                href="https://www.linkedin.com/in/paweljedrasik/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                @PawelJedrasik
+              </a>
+            </Code>
           </div>
         </div>
       </div>
