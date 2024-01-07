@@ -11,6 +11,8 @@ import {
   Divider,
   Image,
   Tooltip,
+  Tabs,
+  Tab,
 } from "@nextui-org/react";
 import { useEffect, useMemo, useState, useCallback, ReactNode } from "react";
 import queryString from "query-string";
@@ -21,6 +23,7 @@ import throttle from "lodash/throttle";
 import type { IWeatherCodes } from "./constants/weatherCodes";
 import { weatherCodes } from "./constants/weatherCodes";
 import { EXOAPI_KEY, TOMORROW_KEY, NINJA_KEY } from "./constants/environment";
+import Icon from "./components/Icon";
 
 interface ICityData {
   latitude: string;
@@ -42,6 +45,7 @@ export default function Home() {
   const [weatherDesc] = useState<IWeatherCodes>(() => weatherCodes);
   const [isLoading, setIsLoading] = useState<Boolean>(true);
   const [cityInput, setCityInput] = useState<string>(() => "Krakow");
+  const [selectedType, setSelectedType] = useState<string>(() => "men");
   const [cityData, setCityData] = useState<ICityData>({
     latitude: "",
     longitude: "",
@@ -174,7 +178,8 @@ export default function Home() {
 
   useEffect(() => {
     throttledCitySet();
-  }, [throttledCitySet]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function success(position: any): void {
     const { latitude, longitude } = position.coords;
@@ -232,39 +237,76 @@ export default function Home() {
     } else {
       vibe = "freezing";
     }
-    switch (vibe) {
-      case "hot": {
-        layers.push("jersey", "shorts", "sneakers");
-        break;
+    if (selectedType === "men") {
+      switch (vibe) {
+        case "hot": {
+          layers.push("jersey", "shorts", "sneakers");
+          break;
+        }
+        case "warm": {
+          layers.push("t-shirt", "jeansShorts", "sneakers");
+          break;
+        }
+        case "medium": {
+          layers.push("t-shirt", "jeans", "sneakers");
+          break;
+        }
+        case "chilly": {
+          layers.push("hoodie", "jeans", "winterShoes");
+          break;
+        }
+        case "cold": {
+          layers.push("rainJacket", "jeans", "winterShoes");
+          break;
+        }
+        case "freezing": {
+          layers.push(
+            "scarf",
+            "winterHat",
+            "gloves",
+            "winterJacket",
+            "jeans",
+            "winterShoes"
+          );
+          break;
+        }
+        default:
       }
-      case "warm": {
-        layers.push("t-shirt", "jeansShorts", "sneakers");
-        break;
+    } else {
+      switch (vibe) {
+        case "hot": {
+          layers.push("lightDress", "flatShoes");
+          break;
+        }
+        case "warm": {
+          layers.push("dress", "flatShoes");
+          break;
+        }
+        case "medium": {
+          layers.push("longDress", "sneakers");
+          break;
+        }
+        case "chilly": {
+          layers.push("sweater", "jeans", "winterShoes");
+          break;
+        }
+        case "cold": {
+          layers.push("coat", "jeans", "boots");
+          break;
+        }
+        case "freezing": {
+          layers.push(
+            "scarf",
+            "winterHat",
+            "mittens",
+            "winterCoat",
+            "jeans",
+            "winterBoots"
+          );
+          break;
+        }
+        default:
       }
-      case "medium": {
-        layers.push("t-shirt", "jeans", "sneakers");
-        break;
-      }
-      case "chilly": {
-        layers.push("hoodie", "jeans", "winterShoes");
-        break;
-      }
-      case "cold": {
-        layers.push("rainJacket", "jeans", "winterShoes");
-        break;
-      }
-      case "freezing": {
-        layers.push(
-          "scarf",
-          "winterHat",
-          "gloves",
-          "winterJacket",
-          "jeans",
-          "winterShoes"
-        );
-        break;
-      }
-      default:
     }
     return layers.map((layer, i) => (
       <>
@@ -357,6 +399,10 @@ export default function Home() {
     return false;
   }
 
+  function onTypeChange(type: any): void {
+    setSelectedType(type);
+  }
+
   return (
     <main className="bg-slate-950">
       <div className="flex h-full min-h-screen flex-col p-4 sm:p-24 items-center ">
@@ -444,6 +490,32 @@ export default function Home() {
                     />
                   </Tooltip>
                 </CardHeader>
+                <Divider />
+                <div className="flex justify-end px-6 py-2">
+                  <Tabs
+                    selectedKey={selectedType}
+                    onSelectionChange={onTypeChange}
+                    color="primary"
+                    variant="bordered"
+                  >
+                    <Tab
+                      key="men"
+                      title={
+                        <div className="h-6 w-6 flex items-center space-x-2">
+                          <Icon icon="male" />
+                        </div>
+                      }
+                    />
+                    <Tab
+                      key="women"
+                      title={
+                        <div className="h-6 w-6 flex items-center space-x-2">
+                          <Icon icon="female" />
+                        </div>
+                      }
+                    />
+                  </Tabs>
+                </div>
                 <Divider />
                 <CardBody className="flex flex-col sm:flex-row justify-around items-center p-8">
                   {weather ? renderClothes() : <p>No data.</p>}
