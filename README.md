@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Paweł Jędrasik Portfolio
 
-## Getting Started
+Welcome to the Weather Wear app! If you're constantly checking the weather, because you don't know what to wear outside again - this app is for you! Select your location, outfit type, and you'll get your suggestions!
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Setup](#setup)
+- [About Me](#about-me)
+- [Technologies Used](#technologies-used)
+- [Contact](#contact)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To run this portfolio app locally, follow these steps:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+1. Clone the repository: `git clone https://github.com/L3VU5/weather-wear`
+2. Navigate to the project folder: `cd weather-wear`
+3. Install dependencies: `npm install`
+4. Start the application: `npm run start`
 
-## Learn More
+## About Me
 
-To learn more about Next.js, take a look at the following resources:
+I'm a passionate front-end developer with industry experience building web and mobile applications. I like to experiment with new technologies and frameworks to improve my skills.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Specialized in JavaScript, experienced in working with React, React Native and AngularJS.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Technologies Used
 
-## Deploy on Vercel
+- React
+- Angular.js
+- React Native
+- NodeJS
+- NextJS
+- Framer Motion
+- Tailwind CSS
+- Styled Components
+- Redux
+- Redux Saga
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Feel free to explore each project to get a closer look at my skills and the technologies I've utilized.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Contact
+
+Feel free to reach out to me if you have any questions, collaboration opportunities, or just want to connect:
+
+- Email: paweljedrasik@o2.pl
+- LinkedIn: https://www.linkedin.com/in/paweljedrasik/
+- GitHub: https://github.com/L3VU5
+
+Thank you for checking out my repo!
