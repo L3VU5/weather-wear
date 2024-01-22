@@ -1,4 +1,4 @@
-# Paweł Jędrasik Portfolio
+# Weather Wear
 
 Welcome to the Weather Wear app! If you're constantly checking the weather, because you don't know what to wear outside again - this app is for you! Select your location, outfit type, and you'll get your suggestions!
 
@@ -11,7 +11,7 @@ Welcome to the Weather Wear app! If you're constantly checking the weather, beca
 
 ## Setup
 
-To run this portfolio app locally, follow these steps:
+To run this app locally, follow these steps:
 
 1. Clone the repository: `git clone https://github.com/L3VU5/weather-wear`
 2. Navigate to the project folder: `cd weather-wear`
