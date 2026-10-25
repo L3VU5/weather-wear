@@ -2,6 +2,8 @@
 
 Not sure what to put on? Weather Wear checks the weather outside right now and suggests an outfit: umbrella, sunglasses, a hoodie or a winter coat. Pick a city or use your location, and switch between men's and women's suggestions.
 
+**Live demo:** https://weather-wear-paweljedrasiks-projects.vercel.app/
+
 ## Features
 
 - Current weather for any city: temperature, feels-like temperature, wind, UV index and rain, with an illustration for the conditions.
