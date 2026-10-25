@@ -2,26 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+@layer base {
+  html {
+    background: #0b1424;
+    color-scheme: dark;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+  body {
+    @apply font-sans text-white antialiased;
+  }
+
+  ::selection {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  :focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  .aurora {
+    @apply absolute animate-drift rounded-full;
+    filter: blur(110px);
+  }
+
+  /* Palindromic gradient: starts and ends on the same colour, so the looping shimmer has no seam. */
+  .gradient-text {
+    background-image: linear-gradient(100deg, #fde68a 0%, #fb923c 25%, #f472b6 50%, #fb923c 75%, #fde68a 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    @apply animate-shimmer;
+  }
+
+  .card {
+    @apply rounded-3xl border border-white/15 bg-slate-950/35 backdrop-blur-xl;
+    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.6);
+  }
+
+  .btn {
+    @apply inline-flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-6 text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-solid {
+    @apply bg-white text-slate-900 hover:bg-white/90;
+  }
+  .btn-glass {
+    @apply border border-white/20 bg-white/10 text-white backdrop-blur hover:bg-white/20;
+  }
 }

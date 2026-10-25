@@ -1,23 +1,33 @@
 import type { Config } from "tailwindcss";
-const { nextui } = require("@nextui-org/react");
 
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./app/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
+      },
+      keyframes: {
+        drift: {
+          "0%": { transform: "translate3d(0,0,0) scale(1)" },
+          "100%": { transform: "translate3d(60px,40px,0) scale(1.15)" },
+        },
+        shimmer: { to: { backgroundPosition: "200% center" } },
+        rise: {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        fade: { from: { opacity: "0" }, to: { opacity: "1" } },
+      },
+      animation: {
+        drift: "drift 24s ease-in-out infinite alternate",
+        shimmer: "shimmer 10s linear infinite",
+        rise: "rise 0.4s ease-out",
+        fade: "fade 0.8s ease-out",
       },
     },
   },
-  darkMode: "class",
-  plugins: [nextui()],
+  plugins: [],
 };
 export default config;
